@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studs Budge | Student Finance</title>
+    <link rel="stylesheet" href="Styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="bg-canvas" role="presentation"></div>
+
+    <nav class="glass-nav">
+        <!-- ALT TEXT 1: Logo Icon -->
+        <div class="logo">
+            <i class="fa-solid fa-bolt" role="img" aria-label="Studs Budge lightning bolt logo"></i> Studs Budge
+        </div>
+        
+        <div class="nav-right">
+            <ul>
+                <!-- ALT TEXT 2: Dashboard Navigation -->
+                <li><a href="#" id="nav-dashboard" class="active" onclick="switchView('dashboard')">
+                    <i class="fa-solid fa-house" role="img" aria-label="Dashboard icon"></i> Dashboard
+                </a></li>
+                <!-- ALT TEXT 3: Analytics Navigation -->
+                <li><a href="#" id="nav-reports" onclick="switchView('reports')">
+                    <i class="fa-solid fa-chart-pie" role="img" aria-label="Analytics pie chart icon"></i> Analytics
+                </a></li>
+            </ul>
+            
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle Light or Dark Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            
+            <button onclick="logout()" class="theme-toggle logout-btn" aria-label="Logout of Studs Budge" title="Logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- DASHBOARD VIEW -->
+        <section id="dashboard-section" class="view-section">
+            <header class="page-header">
+                <div>
+                    <h1 class="glow-text">Welcome Back.</h1>
+                    <p>Here is your financial snapshot for the month.</p>
+                </div>
+                <button class="btn-glow" onclick="shareProgress()">
+                    <i class="fa-solid fa-share-nodes"></i> Share Progress
+                </button>
+            </header>
+
+            <!-- Global Over-Budget Warning Banner -->
+            <div id="global-over-budget-warning" class="global-warning hidden" role="alert">
+                <div class="warning-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="warning-content">
+                    <h3>Budget Alert</h3>
+                    <p id="global-warning-text">You have exceeded a budget limit.</p>
+                </div>
+            </div>
+
+            <div class="summary-cards">
+                <div class="card glass-card">
+                    <!-- ALT TEXT 4: Income Trend Icon -->
+                    <div class="card-icon income-icon">
+                        <i class="fa-solid fa-arrow-trend-up" role="img" aria-label="Income trending upwards icon"></i>
+                    </div>
+                    <h3>Total Income</h3>
+                    <p id="total-income">R 0.00</p>
+                </div>
+                <div class="card glass-card">
+                    <!-- ALT TEXT 5: Expense Trend Icon -->
+                    <div class="card-icon expense-icon">
+                        <i class="fa-solid fa-arrow-trend-down" role="img" aria-label="Expenses trending downwards icon"></i>
+                    </div>
+                    <h3>Total Expenses</h3>
+                    <p id="total-expenses" class="text-red">R 0.00</p>
+                </div>
+                <div class="card glass-card highlight-card">
+                    <div class="card-icon balance-icon">
+                        <i class="fa-solid fa-wallet" role="img" aria-label="Wallet icon representing remaining balance"></i>
+                    </div>
+                    <h3>Remaining Balance</h3>
+                    <p id="remaining-balance">R 0.00</p>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="form-container glass-card">
+                    <h2>Log Transaction</h2>
+                    <form id="transaction-form">
+                        <div class="input-row">
+                            <div class="input-group">
+                                <label for="type">Type</label>
+                                <select id="type" required>
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="category">Category</label>
+                                <select id="category" required>
+                                    <option value="food">Food & Groceries</option>
+                                    <option value="transport">Transport</option>
+                                    <option value="entertainment">Entertainment</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label for="description">Description</label>
+                            <input type="text" id="description" placeholder="e.g., Uber ride" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="amount">Amount (R)</label>
+                            <input type="number" id="amount" min="0.01" step="0.01" placeholder="0.00" required>
+                        </div>
+                        <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Add Transaction</button>
+                    </form>
+                </div>
+
+                <div class="right-col">
+                    <div class="chart-container glass-card">
+                        <h2>Spending Breakdown</h2>
+                        <div class="chart-wrapper">
+                            <!-- ALT TEXT 6: Canvas Chart Accessibility -->
+                            <canvas id="dashboardBarChart" role="img" aria-label="Bar chart showing spending breakdown across Food, Transport, and Entertainment"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="budget-progress-container glass-card">
+                        <h2>Category Limits</h2>
+                        
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span><i class="fa-solid fa-utensils" role="img" aria-label="Fork and knife icon for Food"></i> Food</span>
+                                <span id="food-text">R 0 / R 1500</span>
+                            </div>
+                            <div class="progress-bar-bg" role="progressbar" aria-valuemin="0" aria-valuemax="1500" aria-valuenow="0" id="food-progress-bar">
+                                <div class="progress-bar-fill food-fill" id="food-bar"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span><i class="fa-solid fa-bus" role="img" aria-label="Bus icon for Transport"></i> Transport</span>
+                                <span id="transport-text">R 0 / R 500</span>
+                            </div>
+                            <div class="progress-bar-bg" role="progressbar" aria-valuemin="0" aria-valuemax="500" aria-valuenow="0" id="transport-progress-bar">
+                                <div class="progress-bar-fill transport-fill" id="transport-bar"></div>
+                            </div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-label">
+                                <span><i class="fa-solid fa-bolt" role="img" aria-label="Lightning bolt icon for Entertainment"></i> Entertainment</span>
+                                <span id="entertainment-text">R 0 / R 800</span>
+                            </div>
+                            <div class="progress-bar-bg" role="progressbar" aria-valuemin="0" aria-valuemax="800" aria-valuenow="0" id="entertainment-progress-bar">
+                                <div class="progress-bar-fill ent-fill" id="entertainment-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-container glass-card">
+                <h2>Recent Activity</h2>
+                <ul id="transaction-list"></ul>
+            </div>
+        </section>
+
+        <!-- ANALYTICS VIEW -->
+        <section id="reports-section" class="view-section hidden">
+            <header class="page-header">
+                <h1 class="glow-text">Deep Analytics</h1>
+                <p>Visualize your spending habits.</p>
+            </header>
+            <div class="glass-card chart-container" style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+                <h2>Expenses by Category</h2>
+                <div style="position: relative; height:400px; width:100%; display:flex; justify-content:center; margin-top: 1rem;">
+                    <!-- ALT TEXT 7: Canvas Chart Accessibility -->
+                    <canvas id="expenseChart" role="img" aria-label="Doughnut chart showing total expenses by category"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-content glass-card">
+            <h3><i class="fa-solid fa-triangle-exclamation text-red" role="img" aria-label="Warning triangle icon"></i> Wait!</h3>
+            <p>Are you sure you want to delete this transaction? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="cancel-delete" class="btn-secondary">Cancel</button>
+                <button id="confirm-delete" class="btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-message">Transaction added!</span>
+    </div>
+
+    <script src="Script.js"></script>
+</body>
+</html>
